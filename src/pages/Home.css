@@ -1,0 +1,74 @@
+*, *::before, *::after { box-sizing: border-box; }
+.wizard-container { height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #f0f2f5; font-family: Arial, sans-serif; position: relative; }
+.slides { display: flex; width: 100%; flex: 1; transition: transform 0.4s ease; transform: translateX(calc(-1 * var(--current-step) * 100%)); }
+.slide { flex: 0 0 100%; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.form-fields { display: flex; flex-direction: column; gap: 20px; width: 60%; max-width: 500px; margin: 0 auto; }
+.input-group { width: 100%; }
+.input-group label { margin-bottom: 8px; font-weight: bold; color: #333; }
+.input-group input { width: 100%; padding: 12px; border: none; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); font-size: 16px; background: #fff; }
+.radio-field { width: 100%; }
+.radio-field p { margin-bottom: 8px; font-weight: bold; color: #333; }
+.radio-buttons { display: flex; gap: 16px; width: 100%; }
+
+.radio-option {
+    flex: 1;
+    padding: 12px 0;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s, box-shadow 0.2s;
+    text-align: center;
+    position: relative;
+}
+
+.radio-option.selected {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .radio-option::after {
+        content: attr(data-gender);
+        display: block;
+    }
+    .radio-option {
+        font-size: 14px;
+    }
+
+    .radio-option > span {
+        display: none;
+    }
+}
+
+.options { display: flex; gap: 10px; margin-top: 20px; }
+.option { padding: 12px 16px; border: 1px solid #bbb; border-radius: 4px; background: #fff; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s, box-shadow 0.2s; }
+.option.selected { background: #007bff; color: #fff; border-color: #007bff; box-shadow: 0 4px 12px rgba(0,123,255,0.3); }
+.next-button, .calculate-button, .submit-button { width: 100%; max-width: 500px; padding: 12px; margin-top: 30px; border: none; border-radius: 4px; background: #007bff; color: #fff; font-size: 16px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s, box-shadow 0.2s; }
+.next-button:disabled, .calculate-button:disabled { background: #aac4e6; cursor: not-allowed; }
+.next-button:hover:not(:disabled), .calculate-button:hover:not(:disabled), .submit-button:hover { box-shadow: 0 4px 12px rgba(0,123,255,0.3); }
+.back-button { position: absolute; bottom: 20px; left: 20px; padding: 10px 14px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s, box-shadow 0.2s; width: auto; }
+.top3-container {
+    display: flex;
+    gap: 2vw;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.top3-item {
+    width: min(120px, 25vw);
+    height: min(120px, 25vw);
+    border: 2px solid #007bff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: min(48px, 8vw);
+    font-weight: bold;
+    color: #007bff;
+    background: #fff;
+}
