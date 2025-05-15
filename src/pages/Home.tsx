@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import './Home.css';
+import { questions } from '../hooks/questions';
 import { sendFormData, SubmitPayload } from '../services/api';
 
 const TOTAL_QUESTIONS = 66;
+const TOTAL_STEPS = TOTAL_QUESTIONS + 4;
+const RESULTS_STEP = TOTAL_STEPS - 1;
 const DIMENSIONS = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
 type Dimension = typeof DIMENSIONS[number];
 
@@ -42,17 +45,32 @@ const Home: React.FC = () => {
     };
 
     const handleOption = (value: number) => {
-        const idx = currentStep - 1;
         const newRes = [...formData.resultados];
-        const isLastSix = idx >= TOTAL_QUESTIONS - 6;
-        if (isLastSix && newRes[idx] === value) {
-            newRes[idx] = null;
-        } else {
-            newRes[idx] = value;
+        let nextStep = currentStep + 1;
+
+        if (currentStep >= 2 && currentStep <= 61) {
+            // preguntas 1–60
+            newRes[currentStep - 2] = value;
+        } else if (currentStep >= 63 && currentStep <= 68) {
+            // preguntas 61–66
+            const idx = currentStep - 3;
+            const usedElsewhere = newRes
+                .slice(60, 66)
+                .some((v, i) => v === value && i !== idx - 60);
+            if (!usedElsewhere) {
+                newRes[idx] = value;
+                // Si estamos en la última afirmación, vamos directo a resultados (slide 69)
+                if (currentStep === 68) nextStep = TOTAL_STEPS - 1;
+            } else {
+                alert('Ya usaste ese valor en otra afirmación');
+                return;
+            }
         }
+
         setFormData({ ...formData, resultados: newRes });
-        setCurrentStep(s => Math.min(TOTAL_QUESTIONS + 1, s + 1));
+        setCurrentStep(nextStep);
     };
+
 
     const calculateScores = () => {
         const Sum: Record<Dimension, number> = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
@@ -79,7 +97,7 @@ const Home: React.FC = () => {
         });
         const top3 = [...DIMENSIONS].sort((a, b) => T[b] - T[a]).slice(0, 3);
         setScores({ Sum, Sub, P, Self, T, top3 });
-        setCurrentStep(TOTAL_QUESTIONS + 1);
+        setCurrentStep(RESULTS_STEP);
     };
 
     const goBack = () => setCurrentStep(s => Math.max(0, s - 1));
@@ -165,26 +183,107 @@ const Home: React.FC = () => {
                         </button>
                     </div>
                 </div>
-                {/* Preguntas */}
-                {formData.resultados.map((res, i) => (
+
+                {/* Step 1: Instrucciones preguntas 1-60 */}
+                <div className="slide instructions-screen">
+                    <h2>Instrucciones</h2>
+                    <h2>(Afirmaciones 1 a 60)</h2>
+                    <p className="question-text">
+                        Lee cada afirmación con atención.Marca sólo un valor según tu grado de acuerdo:
+                    </p>
+                    <p className="option-meaning">
+                        <ul>
+                            <li>1 = Muy en desacuerdo</li>
+                            <li>2 = En desacuerdo</li>
+                            <li>3 = Ni acuerdo ni en desacuerdo</li>
+                            <li>4 = De acuerdo</li>
+                            <li>5 = Muy de acuerdo</li>
+                        </ul>
+                    </p>
+                    <p>Sé honesto/a; no hay respuestas “buenas” o “malas”.</p>
+                    <button className="next-button" onClick={() => setCurrentStep(2)}>Comenzar</button>
+                </div>
+
+                {/* Preguntas 1-60 (steps 2-61) */}
+                {formData.resultados.slice(0,60).map((res, i) => (
                     <div key={i} className="slide">
-                        <h1>Pregunta {i + 1}</h1>
+                        <h2>Afirmación {i + 1}</h2>
+                        <p className="question-text">{questions[i]}</p>
+                        <p className="option-meaning">
+                            <ul>
+                                <li>1 = Muy en desacuerdo</li>
+                                <li>2 = En desacuerdo</li>
+                                <li>3 = Ni acuerdo ni en desacuerdo</li>
+                                <li>4 = De acuerdo</li>
+                                <li>5 = Muy de acuerdo</li>
+                            </ul>
+                        </p>
                         <div className="options">
-                            {Array(i < TOTAL_QUESTIONS - 6 ? 5 : 6)
-                                .fill(0)
-                                .map((_, v) => (
-                                    <button
-                                        key={v}
-                                        className={`option ${res === v + 1 ? 'selected' : ''}`}
-                                        onClick={() => handleOption(v + 1)}
-                                        disabled={isDisabledLastSix(i, v + 1)}
-                                    >
-                                        {v + 1}
-                                    </button>
-                                ))}
+                            {Array(5).fill(0).map((_, v) => (
+                                <button
+                                    key={v}
+                                    className={`option ${res === v + 1 ? 'selected' : ''}`}
+                                    onClick={() => handleOption(v + 1)}
+                                >
+                                    {v + 1}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 ))}
+
+                {/* Step 62: Instrucciones preguntas 61-66 */}
+                <div className="slide instructions-screen">
+                    <h2>Instrucciones</h2>
+                    <h2>(Afirmaciones 61 a 66)</h2>
+                    <p className="question-text">
+                        Para cada aspecto, selecciona un único valor del 1 al 6 según cómo te percibes:
+                    </p>
+                    <p className="option-meaning">
+                        <ul>
+                            <li>1 = Muy baja</li>
+                            <li>2 = Baja</li>
+                            <li>3 = Algo Baja</li>
+                            <li>4 = Algo Alta</li>
+                            <li>5 = Alta</li>
+                            <li>6 = Muy Alta</li>
+                        </ul>
+                    </p>
+                    <p className="question-text">No repitas el mismo número en más de un aspecto. Cada valor sólo puede usarse una vez.</p>
+                    <button className="next-button" onClick={() => setCurrentStep(63)}>Continuar</button>
+                </div>
+
+                {/* Preguntas 61-66 (steps 63-68) */}
+                {formData.resultados.slice(60).map((res, i) => (
+                    <div key={i+60} className="slide">
+                        <h3>Afirmación {i + 61}</h3>
+                        <p className="question-text">{questions[i + 60]}</p>
+                        <p className="option-meaning">
+                            <ul>
+                                <li>1 = Muy baja</li>
+                                <li>2 = Baja</li>
+                                <li>3 = Algo Baja</li>
+                                <li>4 = Algo Alta</li>
+                                <li>5 = Alta</li>
+                                <li>6 = Muy Alta</li>
+                            </ul>
+                        </p>
+                        <div className="options">
+                            {Array(6).fill(0).map((_, v) => (
+                                <button
+                                    key={v}
+                                    className={`option ${res === v + 1 ? 'selected' : ''}`}
+                                    onClick={() => handleOption(v + 1)}
+                                    disabled={isDisabledLastSix(i + 60, v + 1)}
+                                >
+                                    {v + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+
+
                 {/* Resultados */}
                 <div className="slide">
                     <h1>Resultados RIASEC</h1>
@@ -202,7 +301,9 @@ const Home: React.FC = () => {
                     )}
                 </div>
             </div>
-            {currentStep > 0 && currentStep <= TOTAL_QUESTIONS && <button className="back-button" onClick={goBack}>← Atrás</button>}
+            {currentStep > 0 && currentStep < TOTAL_STEPS - 1 && (
+                <button className="back-button" onClick={goBack}>← Atrás</button>
+            )}
         </div>
     );
 };
